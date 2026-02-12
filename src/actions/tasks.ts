@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { validatePin } from '@/lib/pin'
-import { TaskGroup } from '@prisma/client'
 
 const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -33,7 +32,7 @@ export async function createTask(data: z.infer<typeof createTaskSchema>) {
   const task = await prisma.task.create({
     data: {
       title: validated.title,
-      group: validated.group as TaskGroup,
+      group: validated.group,
     },
   })
 

@@ -1,4 +1,4 @@
-import { PrismaClient, TaskGroup } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -26,7 +26,7 @@ async function main() {
   const tischdecken = await prisma.task.create({
     data: {
       title: 'Tischdecken',
-      group: TaskGroup.REGULAR,
+      group: 'REGULAR',
       isActive: true,
     },
   })
@@ -34,7 +34,7 @@ async function main() {
   const biomuell = await prisma.task.create({
     data: {
       title: 'Biomüll',
-      group: TaskGroup.REGULAR,
+      group: 'REGULAR',
       isActive: true,
     },
   })
@@ -43,7 +43,7 @@ async function main() {
   const socken = await prisma.task.create({
     data: {
       title: 'Socken zusammensuchen',
-      group: TaskGroup.TEN_MIN,
+      group: 'TEN_MIN',
       isActive: true,
     },
   })

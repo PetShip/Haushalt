@@ -13,10 +13,12 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
   const [inputPin, setInputPin] = useState('')
   const [error, setError] = useState('')
   const [readOnly, setReadOnly] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
     if (!pinRequired) {
       setPin('authorized')
+      setIsInitialized(true)
       return
     }
 
@@ -26,6 +28,7 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
     } else {
       setShowModal(true)
     }
+    setIsInitialized(true)
   }, [pinRequired])
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,6 +44,11 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
   const handleReadOnly = () => {
     setReadOnly(true)
     setShowModal(false)
+  }
+
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return null
   }
 
   if (!pin && !readOnly) {
