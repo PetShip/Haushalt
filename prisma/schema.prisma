@@ -24,7 +24,7 @@ model Kid {
 model Task {
   id        String    @id @default(cuid())
   title     String
-  group     TaskGroup
+  group     String    // "REGULAR" or "TEN_MIN"
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   
@@ -47,9 +47,4 @@ model CompletionLog {
   @@index([taskId])
   @@index([createdAt])
   @@map("completion_logs")
-}
-
-enum TaskGroup {
-  REGULAR
-  TEN_MIN
 }
