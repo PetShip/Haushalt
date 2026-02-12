@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Kid {
+  id        String   @id @default(cuid())
+  firstName String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  
+  completions CompletionLog[]
+  
+  @@map("kids")
+}
+
+model Task {
+  id        String    @id @default(cuid())
+  title     String
+  group     TaskGroup
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  
+  completions CompletionLog[]
+  
+  @@map("tasks")
+}
+
+model CompletionLog {
+  id        String   @id @default(cuid())
+  kidId     String
+  taskId    String
+  minutes   Int?
+  createdAt DateTime @default(now())
+  
+  kid  Kid  @relation(fields: [kidId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  @@index([kidId])
+  @@index([taskId])
+  @@index([createdAt])
+  @@map("completion_logs")
+}
+
+enum TaskGroup {
+  REGULAR
+  TEN_MIN
+}
