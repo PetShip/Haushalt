@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -15,21 +15,21 @@ model Kid {
   firstName String
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  
+
   completions CompletionLog[]
-  
+
   @@map("kids")
 }
 
 model Task {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   title     String
-  group     String    // "REGULAR" or "TEN_MIN"
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  
+  group     String // "REGULAR" or "TEN_MIN"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
   completions CompletionLog[]
-  
+
   @@map("tasks")
 }
 
@@ -39,10 +39,10 @@ model CompletionLog {
   taskId    String
   minutes   Int?
   createdAt DateTime @default(now())
-  
+
   kid  Kid  @relation(fields: [kidId], references: [id], onDelete: Cascade)
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  
+
   @@index([kidId])
   @@index([taskId])
   @@index([createdAt])
