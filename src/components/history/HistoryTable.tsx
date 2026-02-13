@@ -1,16 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CompletionLog, Kid, Task } from '@prisma/client'
 import { deleteCompletion } from '@/actions/logs'
 
 interface HistoryTableProps {
   logs: (CompletionLog & { kid: Kid; task: Task })[]
+  pinRequired: boolean
 }
 
-export default function HistoryTable({ logs }: HistoryTableProps) {
+export default function HistoryTable({ logs, pinRequired }: HistoryTableProps) {
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    const checkAuth = () => {
+      if (!pinRequired) {
+        setIsAuthenticated(true)
+        return
+      }
+      const storedPin = sessionStorage.getItem('haushalt_pin')
+      setIsAuthenticated(!!storedPin)
+    }
+
+    checkAuth()
+    const interval = setInterval(checkAuth, 500)
+    return () => clearInterval(interval)
+  }, [pinRequired])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this log?')) {
@@ -55,6 +72,13 @@ export default function HistoryTable({ logs }: HistoryTableProps) {
           {error}
         </div>
       )}
+      {!isAuthenticated && pinRequired && (
+        <div className="bg-blue-50 border-b border-blue-200 text-blue-700 px-4 py-3">
+          <p className="text-sm">
+            <strong>Read-Only Mode:</strong> You can view the history but cannot delete entries. Click &quot;Unlock&quot; in the menu to enable editing.
+          </p>
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -71,9 +95,11 @@ export default function HistoryTable({ logs }: HistoryTableProps) {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Minutes
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+              {isAuthenticated && (
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -91,15 +117,17 @@ export default function HistoryTable({ logs }: HistoryTableProps) {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {log.minutes || '-'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                  <button
-                    onClick={() => handleDelete(log.id)}
-                    disabled={loading === log.id}
-                    className="text-red-600 hover:text-red-900 disabled:opacity-50 font-medium"
-                  >
-                    {loading === log.id ? 'Deleting...' : 'Delete'}
-                  </button>
-                </td>
+                {isAuthenticated && (
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                    <button
+                      onClick={() => handleDelete(log.id)}
+                      disabled={loading === log.id}
+                      className="text-red-600 hover:text-red-900 disabled:opacity-50 font-medium"
+                    >
+                      {loading === log.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

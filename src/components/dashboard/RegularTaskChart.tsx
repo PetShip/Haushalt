@@ -1,16 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TaskStats } from '@/lib/analytics'
 import AddCompletionModal from './AddCompletionModal'
 
 interface RegularTaskChartProps {
   task: TaskStats
   kids: { id: string; firstName: string }[]
+  pinRequired?: boolean
 }
 
-export default function RegularTaskChart({ task, kids }: RegularTaskChartProps) {
+export default function RegularTaskChart({ task, kids, pinRequired = false }: RegularTaskChartProps) {
   const [showModal, setShowModal] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    const checkAuth = () => {
+      if (!pinRequired) {
+        setIsAuthenticated(true)
+        return
+      }
+      const storedPin = sessionStorage.getItem('haushalt_pin')
+      setIsAuthenticated(!!storedPin)
+    }
+
+    checkAuth()
+    const interval = setInterval(checkAuth, 500)
+    return () => clearInterval(interval)
+  }, [pinRequired])
 
   // Filter to only show kids assigned to this task
   const assignedKids = task.assignedKids && task.assignedKids.length > 0
@@ -31,12 +48,14 @@ export default function RegularTaskChart({ task, kids }: RegularTaskChartProps) 
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{task.taskTitle}</h3>
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
-          >
-            + Add
-          </button>
+          {isAuthenticated && (
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
+            >
+              + Add
+            </button>
+          )}
         </div>
         <div className="space-y-3">
           {assignedKids.length === 0 ? (

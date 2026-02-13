@@ -1,15 +1,17 @@
 import { getActiveKids } from '@/actions/kids'
 import { getActiveTasks } from '@/actions/tasks'
 import { getTaskStats } from '@/lib/analytics'
+import { isPinRequired } from '@/lib/pin'
 import RegularTaskChart from '@/components/dashboard/RegularTaskChart'
 import TenMinTasksOverview from '@/components/dashboard/TenMinTasksOverview'
 
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const [kids, tasks] = await Promise.all([
+  const [kids, tasks, pinRequired] = await Promise.all([
     getActiveKids(), 
     getActiveTasks(),
+    isPinRequired(),
   ])
 
   // Calculate date ranges
@@ -54,7 +56,7 @@ export default async function DashboardPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Regular Tasks Progress</h2>
             {regularTaskStats.length > 0 ? (
               regularTaskStats.map((task) => (
-                <RegularTaskChart key={task.taskId} task={task} kids={kids} />
+                <RegularTaskChart key={task.taskId} task={task} kids={kids} pinRequired={pinRequired} />
               ))
             ) : (
               <div className="bg-white rounded-lg shadow p-6">
@@ -67,7 +69,7 @@ export default async function DashboardPage() {
 
           {/* 10-Minute Tasks Overview - takes 1 column */}
           <div className="lg:col-span-1">
-            <TenMinTasksOverview tasks={tenMinTaskStats} kids={kids} />
+            <TenMinTasksOverview tasks={tenMinTaskStats} kids={kids} pinRequired={pinRequired} />
           </div>
         </div>
       )}
