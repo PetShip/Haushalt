@@ -5,38 +5,15 @@ import { ReactNode, useState, useEffect } from 'react'
 interface PinGuardProps {
   children: ReactNode
   pinRequired: boolean
-  onAuthStateChange?: (isAuthenticated: boolean, isReadOnly: boolean) => void
 }
 
-export default function PinGuard({ children, pinRequired, onAuthStateChange }: PinGuardProps) {
+export default function PinGuard({ children, pinRequired }: PinGuardProps) {
   const [pin, setPin] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [inputPin, setInputPin] = useState('')
   const [error, setError] = useState('')
   const [readOnly, setReadOnly] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
-
-  useEffect(() => {
-    if (!pinRequired) {
-      setPin('authorized')
-      setReadOnly(false)
-      setIsInitialized(true)
-      onAuthStateChange?.(true, false)
-      return
-    }
-
-    const storedPin = sessionStorage.getItem('haushalt_pin')
-    if (storedPin) {
-      setPin(storedPin)
-      setReadOnly(false)
-      onAuthStateChange?.(true, false)
-    } else {
-      // Start in read-only mode by default (no modal)
-      setReadOnly(true)
-      onAuthStateChange?.(false, true)
-    }
-    setIsInitialized(true)
-  }, [pinRequired, onAuthStateChange])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,24 +24,43 @@ export default function PinGuard({ children, pinRequired, onAuthStateChange }: P
     setPin(inputPin)
     setReadOnly(false)
     setShowModal(false)
-    onAuthStateChange?.(true, false)
   }
 
   const handleUnlock = () => {
     setShowModal(true)
   }
 
-  // Show loading state while initializing
-  if (!isInitialized) {
-    return null
-  }
+  // Initialize authentication state
+  useEffect(() => {
+    if (!pinRequired) {
+      setPin('authorized')
+      setReadOnly(false)
+      setIsInitialized(true)
+      return
+    }
 
-  // Provide unlock function to children through context
+    const storedPin = sessionStorage.getItem('haushalt_pin')
+    if (storedPin) {
+      setPin(storedPin)
+      setReadOnly(false)
+    } else {
+      // Start in read-only mode by default (no modal)
+      setReadOnly(true)
+    }
+    setIsInitialized(true)
+  }, [pinRequired])
+
+  // Provide unlock function to children through global
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).__haushalUnlock = handleUnlock
     }
   }, [])
+
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return null
+  }
 
   if (!pin && !readOnly && showModal) {
     return (
