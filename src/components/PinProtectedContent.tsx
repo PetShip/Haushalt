@@ -40,7 +40,9 @@ export default function PinProtectedContent({
     e.preventDefault()
     setError('')
 
-    // Store in sessionStorage (validation happens server-side)
+    // Store PIN in sessionStorage. Server-side validation happens on every action.
+    // Invalid PINs will be rejected by the server, causing user-facing errors.
+    // This approach allows the user to access the UI while server validates on each request.
     sessionStorage.setItem('haushalt_pin', inputPin)
     setPin(inputPin)
     setShowModal(false)

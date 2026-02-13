@@ -25,9 +25,11 @@ export default function TaskGroupCard({ title, tasks, kids, pinRequired }: TaskG
     setHasPin(!!storedPin)
   }, [pinRequired])
 
+  const isAuthorized = hasPin || !pinRequired
+
   const handleAddClick = (taskId: string, taskTitle: string) => {
-    if (!hasPin && pinRequired) {
-      alert('Please enter your PIN first to add completions. Go to Tasks or Kids page to enter your PIN.')
+    if (!isAuthorized) {
+      alert('Please enter your PIN to add completions. Visit the Tasks or Kids page to enter your PIN.')
       return
     }
     setSelectedTask({ id: taskId, title: taskTitle })
@@ -54,11 +56,11 @@ export default function TaskGroupCard({ title, tasks, kids, pinRequired }: TaskG
                 <button
                   onClick={() => handleAddClick(task.taskId, task.taskTitle)}
                   className={`px-3 py-1 rounded-md transition-colors text-sm ${
-                    hasPin || !pinRequired
+                    isAuthorized
                       ? 'bg-primary-600 text-white hover:bg-primary-700'
                       : 'bg-gray-300 text-gray-600 cursor-not-allowed'
                   }`}
-                  title={!hasPin && pinRequired ? 'PIN required to add completions' : 'Add completion'}
+                  title={!isAuthorized ? 'PIN required to add completions' : 'Add completion'}
                 >
                   + Add
                 </button>
