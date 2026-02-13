@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createCompletion } from '@/actions/logs'
 
 interface AddCompletionModalProps {
-  task: { id: string; title: string }
+  task: { id: string; title: string; assignedKids?: { kidId: string; kidName: string }[] }
   kids: { id: string; firstName: string }[]
   onClose: () => void
 }
@@ -13,6 +13,11 @@ export default function AddCompletionModal({ task, kids, onClose }: AddCompletio
   const [selectedKidId, setSelectedKidId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Filter kids to only show those assigned to this task
+  const availableKids = task.assignedKids && task.assignedKids.length > 0
+    ? kids.filter(kid => task.assignedKids!.some(ak => ak.kidId === kid.id))
+    : kids
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,12 +66,15 @@ export default function AddCompletionModal({ task, kids, onClose }: AddCompletio
               disabled={loading}
             >
               <option value="">Select a kid...</option>
-              {kids.map((kid) => (
+              {availableKids.map((kid) => (
                 <option key={kid.id} value={kid.id}>
                   {kid.firstName}
                 </option>
               ))}
             </select>
+            {availableKids.length === 0 && (
+              <p className="text-sm text-red-600 mt-1">No kids are assigned to this task</p>
+            )}
             {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
           </div>
 

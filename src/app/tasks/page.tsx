@@ -1,4 +1,5 @@
-import { getTasks } from '@/actions/tasks'
+import { getTasksWithKids } from '@/actions/tasks'
+import { getActiveKids } from '@/actions/kids'
 import { isPinRequired } from '@/lib/pin'
 import TasksList from '@/components/tasks/TasksList'
 import AddTaskForm from '@/components/tasks/AddTaskForm'
@@ -7,7 +8,8 @@ import PinProtectedContent from '@/components/PinProtectedContent'
 export const dynamic = 'force-dynamic'
 
 export default async function TasksPage() {
-  const tasks = await getTasks()
+  const tasks = await getTasksWithKids()
+  const kids = await getActiveKids()
   const pinRequired = await isPinRequired()
 
   return (
@@ -55,11 +57,11 @@ export default async function TasksPage() {
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <h2 className="text-xl font-bold mb-4">All Tasks</h2>
-            <TasksList tasks={tasks} />
+            <TasksList tasks={tasks} kids={kids} />
           </div>
 
           <div>
-            <AddTaskForm />
+            <AddTaskForm kids={kids} />
           </div>
         </div>
       </PinProtectedContent>

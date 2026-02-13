@@ -11,11 +11,16 @@ interface TenMinTasksOverviewProps {
 
 export default function TenMinTasksOverview({ tasks, kids }: TenMinTasksOverviewProps) {
   const [showModal, setShowModal] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<{ id: string; title: string } | null>(null)
+  const [selectedTask, setSelectedTask] = useState<{ id: string; title: string; assignedKids?: { kidId: string; kidName: string }[] } | null>(null)
 
-  // Calculate total points per kid across all 10-minute tasks
+  // Calculate total points per kid across all 10-minute tasks (only for tasks they're assigned to)
   const kidPoints = kids.map((kid) => {
     const totalPoints = tasks.reduce((sum, task) => {
+      // Only count if kid is assigned to this task
+      const isAssigned = !task.assignedKids || task.assignedKids.length === 0 || 
+                        task.assignedKids.some(ak => ak.kidId === kid.id)
+      if (!isAssigned) return sum
+      
       const completion = task.completionsByKid.find((c) => c.kidId === kid.id)
       return sum + (completion?.count || 0)
     }, 0)
@@ -33,8 +38,12 @@ export default function TenMinTasksOverview({ tasks, kids }: TenMinTasksOverview
   // Sort by points descending
   const sortedKidPoints = [...kidPoints].sort((a, b) => b.points - a.points)
 
-  const handleAddClick = (taskId: string, taskTitle: string) => {
-    setSelectedTask({ id: taskId, title: taskTitle })
+  const handleAddClick = (task: TaskStats) => {
+    setSelectedTask({ 
+      id: task.taskId, 
+      title: task.taskTitle,
+      assignedKids: task.assignedKids 
+    })
     setShowModal(true)
   }
 
@@ -114,7 +123,7 @@ export default function TenMinTasksOverview({ tasks, kids }: TenMinTasksOverview
               {tasks.map((task) => (
                 <button
                   key={task.taskId}
-                  onClick={() => handleAddClick(task.taskId, task.taskTitle)}
+                  onClick={() => handleAddClick(task)}
                   className="px-3 py-1 bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200 transition-colors text-sm"
                 >
                   + {task.taskTitle}
