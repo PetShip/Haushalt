@@ -64,6 +64,7 @@ export default function AddCompletionModal({ task, kids, onClose }: AddCompletio
               onChange={(e) => setSelectedKidId(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
               disabled={loading}
+              aria-describedby={availableKids.length === 0 ? "no-kids-error" : undefined}
             >
               <option value="">Select a kid...</option>
               {availableKids.map((kid) => (
@@ -73,9 +74,11 @@ export default function AddCompletionModal({ task, kids, onClose }: AddCompletio
               ))}
             </select>
             {availableKids.length === 0 && (
-              <p className="text-sm text-red-600 mt-1">No kids are assigned to this task</p>
+              <p id="no-kids-error" className="text-sm text-red-600 mt-1" role="alert">
+                No kids are assigned to this task
+              </p>
             )}
-            {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+            {error && <p className="text-red-600 text-sm mt-1" role="alert">{error}</p>}
           </div>
 
           <div className="flex gap-2">
