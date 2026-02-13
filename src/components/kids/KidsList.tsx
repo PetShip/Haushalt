@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Kid } from '@prisma/client'
-import { updateKid, toggleKidActive } from '@/actions/kids'
+import { updateKid, toggleKidActive, deleteKid } from '@/actions/kids'
 
 interface KidsListProps {
   kids: Kid[]
@@ -44,6 +44,24 @@ export default function KidsList({ kids }: KidsListProps) {
       await toggleKidActive({ id, pin })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to toggle kid')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete ${name}? This will hide them from the app but keep their data in the database.`)) {
+      return
+    }
+
+    setLoading(id)
+    setError('')
+
+    try {
+      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      await deleteKid({ id, pin })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete kid')
     } finally {
       setLoading(null)
     }
@@ -126,6 +144,13 @@ export default function KidsList({ kids }: KidsListProps) {
                     }`}
                   >
                     {kid.isActive ? 'Deactivate' : 'Activate'}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(kid.id, kid.firstName)}
+                    disabled={loading === kid.id}
+                    className="bg-red-100 text-red-700 px-3 py-1 rounded-md hover:bg-red-200 transition-colors disabled:opacity-50 text-sm"
+                  >
+                    Delete
                   </button>
                 </>
               )}

@@ -21,6 +21,11 @@ const toggleKidSchema = z.object({
   pin: z.string(),
 })
 
+const deleteKidSchema = z.object({
+  id: z.string(),
+  pin: z.string(),
+})
+
 export async function createKid(data: z.infer<typeof createKidSchema>) {
   const validated = createKidSchema.parse(data)
 
@@ -86,6 +91,27 @@ export async function toggleKidActive(data: z.infer<typeof toggleKidSchema>) {
   revalidatePath('/kids')
 
   return updated
+}
+
+export async function deleteKid(data: z.infer<typeof deleteKidSchema>) {
+  const validated = deleteKidSchema.parse(data)
+
+  if (!validatePin(validated.pin)) {
+    throw new Error('Invalid PIN')
+  }
+
+  // Soft delete: set isActive to false
+  const deleted = await prisma.kid.update({
+    where: { id: validated.id },
+    data: {
+      isActive: false,
+    },
+  })
+
+  revalidatePath('/')
+  revalidatePath('/kids')
+
+  return deleted
 }
 
 export async function getKids() {
