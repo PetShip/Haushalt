@@ -12,9 +12,14 @@ interface RegularTaskChartProps {
 export default function RegularTaskChart({ task, kids }: RegularTaskChartProps) {
   const [showModal, setShowModal] = useState(false)
 
-  // Calculate max count for scaling
+  // Filter to only show kids assigned to this task
+  const assignedKids = task.assignedKids && task.assignedKids.length > 0
+    ? kids.filter(kid => task.assignedKids!.some(ak => ak.kidId === kid.id))
+    : kids
+
+  // Calculate max count for scaling (only among assigned kids)
   const maxCount = Math.max(
-    ...kids.map((kid) => {
+    ...assignedKids.map((kid) => {
       const completion = task.completionsByKid.find((c) => c.kidId === kid.id)
       return completion?.count || 0
     }),
@@ -34,41 +39,45 @@ export default function RegularTaskChart({ task, kids }: RegularTaskChartProps) 
           </button>
         </div>
         <div className="space-y-3">
-          {kids.map((kid) => {
-            const completion = task.completionsByKid.find((c) => c.kidId === kid.id)
-            const count = completion?.count || 0
-            const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0
-            
-            // Determine if this kid is falling behind
-            const isFallingBehind = count < maxCount && maxCount > 0
-            
-            return (
-              <div key={kid.id} className="space-y-1">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-medium text-gray-700">{kid.firstName}</span>
-                  <span className={`font-semibold ${isFallingBehind ? 'text-red-600' : 'text-green-600'}`}>
-                    {count} {count === 1 ? 'completion' : 'completions'}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      isFallingBehind
-                        ? 'bg-gradient-to-r from-yellow-400 to-red-500'
-                        : 'bg-gradient-to-r from-green-400 to-green-600'
-                    }`}
-                    style={{ width: `${Math.max(percentage, count > 0 ? 10 : 0)}%` }}
-                  >
-                    {count > 0 && (
-                      <span className="flex items-center justify-center h-full text-xs font-bold text-white">
-                        {count}
-                      </span>
-                    )}
+          {assignedKids.length === 0 ? (
+            <p className="text-gray-500 text-sm">No kids assigned to this task</p>
+          ) : (
+            assignedKids.map((kid) => {
+              const completion = task.completionsByKid.find((c) => c.kidId === kid.id)
+              const count = completion?.count || 0
+              const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0
+              
+              // Determine if this kid is falling behind
+              const isFallingBehind = count < maxCount && maxCount > 0
+              
+              return (
+                <div key={kid.id} className="space-y-1">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-gray-700">{kid.firstName}</span>
+                    <span className={`font-semibold ${isFallingBehind ? 'text-red-600' : 'text-green-600'}`}>
+                      {count} {count === 1 ? 'completion' : 'completions'}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        isFallingBehind
+                          ? 'bg-gradient-to-r from-yellow-400 to-red-500'
+                          : 'bg-gradient-to-r from-green-400 to-green-600'
+                      }`}
+                      style={{ width: `${Math.max(percentage, count > 0 ? 10 : 0)}%` }}
+                    >
+                      {count > 0 && (
+                        <span className="flex items-center justify-center h-full text-xs font-bold text-white">
+                          {count}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })
+          )}
         </div>
         
         {/* Summary */}
@@ -82,7 +91,7 @@ export default function RegularTaskChart({ task, kids }: RegularTaskChartProps) 
 
       {showModal && (
         <AddCompletionModal
-          task={{ id: task.taskId, title: task.taskTitle }}
+          task={{ id: task.taskId, title: task.taskTitle, assignedKids: task.assignedKids }}
           kids={kids}
           onClose={() => setShowModal(false)}
         />

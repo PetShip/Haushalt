@@ -17,6 +17,7 @@ model Kid {
   createdAt DateTime @default(now())
   
   completions CompletionLog[]
+  taskAssignments TaskKidAssignment[]
   
   @@map("kids")
 }
@@ -29,6 +30,7 @@ model Task {
   createdAt DateTime  @default(now())
   
   completions CompletionLog[]
+  kidAssignments TaskKidAssignment[]
   
   @@map("tasks")
 }
@@ -47,4 +49,19 @@ model CompletionLog {
   @@index([taskId])
   @@index([createdAt])
   @@map("completion_logs")
+}
+
+model TaskKidAssignment {
+  id        String   @id @default(cuid())
+  taskId    String
+  kidId     String
+  createdAt DateTime @default(now())
+  
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  kid  Kid  @relation(fields: [kidId], references: [id], onDelete: Cascade)
+  
+  @@unique([taskId, kidId])
+  @@index([taskId])
+  @@index([kidId])
+  @@map("task_kid_assignments")
 }

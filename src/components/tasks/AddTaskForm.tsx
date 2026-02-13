@@ -3,11 +3,32 @@
 import { useState } from 'react'
 import { createTask } from '@/actions/tasks'
 
-export default function AddTaskForm() {
+interface AddTaskFormProps {
+  kids: { id: string; firstName: string }[]
+}
+
+export default function AddTaskForm({ kids }: AddTaskFormProps) {
   const [title, setTitle] = useState('')
   const [group, setGroup] = useState<'REGULAR' | 'TEN_MIN'>('REGULAR')
+  const [selectedKidIds, setSelectedKidIds] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const handleKidToggle = (kidId: string) => {
+    setSelectedKidIds(prev => 
+      prev.includes(kidId) 
+        ? prev.filter(id => id !== kidId)
+        : [...prev, kidId]
+    )
+  }
+
+  const handleSelectAll = () => {
+    if (selectedKidIds.length === kids.length) {
+      setSelectedKidIds([])
+    } else {
+      setSelectedKidIds(kids.map(k => k.id))
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,9 +43,15 @@ export default function AddTaskForm() {
 
     try {
       const pin = sessionStorage.getItem('haushalt_pin') || ''
-      await createTask({ title: title.trim(), group, pin })
+      await createTask({ 
+        title: title.trim(), 
+        group, 
+        kidIds: selectedKidIds.length > 0 ? selectedKidIds : undefined,
+        pin 
+      })
       setTitle('')
       setGroup('REGULAR')
+      setSelectedKidIds([])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create task')
     } finally {
@@ -65,6 +92,45 @@ export default function AddTaskForm() {
           <option value="REGULAR">Regular Tasks</option>
           <option value="TEN_MIN">10-Minute Tasks</option>
         </select>
+      </div>
+
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Assign to Kids
+          </label>
+          <button
+            type="button"
+            onClick={handleSelectAll}
+            className="text-sm text-primary-600 hover:text-primary-700"
+            disabled={loading}
+          >
+            {selectedKidIds.length === kids.length ? 'Deselect All' : 'Select All'}
+          </button>
+        </div>
+        <div className="space-y-2 border border-gray-300 rounded-md p-3 max-h-40 overflow-y-auto">
+          {kids.length === 0 ? (
+            <p className="text-sm text-gray-500">No active kids available</p>
+          ) : (
+            kids.map((kid) => (
+              <label key={kid.id} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedKidIds.includes(kid.id)}
+                  onChange={() => handleKidToggle(kid.id)}
+                  disabled={loading}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm">{kid.firstName}</span>
+              </label>
+            ))
+          )}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          {selectedKidIds.length === 0 
+            ? 'No kids selected - task will be assigned to all active kids'
+            : `${selectedKidIds.length} kid(s) selected`}
+        </p>
       </div>
 
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
