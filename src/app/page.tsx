@@ -1,13 +1,18 @@
 import { getActiveKids } from '@/actions/kids'
 import { getActiveTasks } from '@/actions/tasks'
 import { getKidStats, getTaskStats } from '@/lib/analytics'
+import { isPinRequired } from '@/lib/pin'
 import TaskGroupCard from '@/components/dashboard/TaskGroupCard'
 import FairnessPanel from '@/components/dashboard/FairnessPanel'
 
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const [kids, tasks] = await Promise.all([getActiveKids(), getActiveTasks()])
+  const [kids, tasks, pinRequired] = await Promise.all([
+    getActiveKids(), 
+    getActiveTasks(),
+    isPinRequired()
+  ])
 
   // Calculate date ranges
   const now = new Date()
@@ -36,11 +41,13 @@ export default async function DashboardPage() {
           title="Regular Tasks"
           tasks={regularTaskStats}
           kids={kids}
+          pinRequired={pinRequired}
         />
         <TaskGroupCard
           title="10-Minute Tasks"
           tasks={tenMinTaskStats}
           kids={kids}
+          pinRequired={pinRequired}
         />
       </div>
 
