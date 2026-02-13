@@ -22,6 +22,11 @@ const toggleTaskSchema = z.object({
   pin: z.string(),
 })
 
+const deleteTaskSchema = z.object({
+  id: z.string(),
+  pin: z.string(),
+})
+
 export async function createTask(data: z.infer<typeof createTaskSchema>) {
   const validated = createTaskSchema.parse(data)
 
@@ -88,6 +93,27 @@ export async function toggleTaskActive(data: z.infer<typeof toggleTaskSchema>) {
   revalidatePath('/tasks')
 
   return updated
+}
+
+export async function deleteTask(data: z.infer<typeof deleteTaskSchema>) {
+  const validated = deleteTaskSchema.parse(data)
+
+  if (!validatePin(validated.pin)) {
+    throw new Error('Invalid PIN')
+  }
+
+  // Soft delete: set isActive to false
+  const deleted = await prisma.task.update({
+    where: { id: validated.id },
+    data: {
+      isActive: false,
+    },
+  })
+
+  revalidatePath('/')
+  revalidatePath('/tasks')
+
+  return deleted
 }
 
 export async function getTasks() {

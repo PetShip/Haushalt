@@ -28,8 +28,14 @@ export default function PinProtectedContent({
     }
 
     const storedPin = sessionStorage.getItem('haushalt_pin')
+    const storedReadOnly = sessionStorage.getItem('haushalt_readonly')
+    
     if (storedPin) {
       setPin(storedPin)
+      // If we have a PIN, we're not in read-only mode
+      setReadOnly(false)
+    } else if (storedReadOnly === 'true') {
+      setReadOnly(true)
     } else {
       setShowModal(true)
     }
@@ -44,11 +50,14 @@ export default function PinProtectedContent({
     // Invalid PINs will be rejected by the server, causing user-facing errors.
     // This approach allows the user to access the UI while server validates on each request.
     sessionStorage.setItem('haushalt_pin', inputPin)
+    sessionStorage.removeItem('haushalt_readonly') // Clear read-only mode when PIN is entered
     setPin(inputPin)
+    setReadOnly(false)
     setShowModal(false)
   }
 
   const handleReadOnly = () => {
+    sessionStorage.setItem('haushalt_readonly', 'true')
     setReadOnly(true)
     setShowModal(false)
   }
@@ -110,8 +119,22 @@ export default function PinProtectedContent({
     return (
       <div>
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
-          <p className="font-medium">Read-Only Mode</p>
-          <p className="text-sm">You can view data but cannot make changes. Enter PIN to enable editing.</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="font-medium">Read-Only Mode</p>
+              <p className="text-sm">You can view data but cannot make changes.</p>
+            </div>
+            <button
+              onClick={() => {
+                setReadOnly(false)
+                sessionStorage.removeItem('haushalt_readonly')
+                setShowModal(true)
+              }}
+              className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-md hover:bg-yellow-300 transition-colors text-sm font-medium"
+            >
+              Enter PIN
+            </button>
+          </div>
         </div>
         {readOnlyChildren || null}
       </div>

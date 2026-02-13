@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Task } from '@prisma/client'
-import { updateTask, toggleTaskActive } from '@/actions/tasks'
+import { updateTask, toggleTaskActive, deleteTask } from '@/actions/tasks'
 
 interface TasksListProps {
   tasks: Task[]
@@ -47,6 +47,24 @@ export default function TasksList({ tasks }: TasksListProps) {
       await toggleTaskActive({ id, pin })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to toggle task')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to delete "${title}"? This will hide it from the app but keep the data in the database.`)) {
+      return
+    }
+
+    setLoading(id)
+    setError('')
+
+    try {
+      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      await deleteTask({ id, pin })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete task')
     } finally {
       setLoading(null)
     }
@@ -124,6 +142,13 @@ export default function TasksList({ tasks }: TasksListProps) {
                       }`}
                     >
                       {task.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(task.id, task.title)}
+                      disabled={loading === task.id}
+                      className="bg-red-100 text-red-700 px-3 py-1 rounded-md hover:bg-red-200 transition-colors disabled:opacity-50 text-sm"
+                    >
+                      Delete
                     </button>
                   </>
                 )}
