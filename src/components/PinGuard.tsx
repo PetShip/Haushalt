@@ -62,7 +62,7 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
     return null
   }
 
-  if (!pin && !readOnly && showModal) {
+  if (!pin && showModal) {
     return (
       <>
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
