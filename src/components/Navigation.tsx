@@ -2,18 +2,57 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Navigation() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  const links = [
+  useEffect(() => {
+    // Check authentication state from sessionStorage
+    const checkAuth = () => {
+      const storedPin = sessionStorage.getItem('haushalt_pin')
+      setIsAuthenticated(!!storedPin)
+    }
+
+    checkAuth()
+
+    // Listen for storage events to update auth state
+    const handleStorageChange = () => {
+      checkAuth()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    // Also check periodically as sessionStorage doesn't trigger storage events in the same tab
+    const interval = setInterval(checkAuth, 500)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      clearInterval(interval)
+    }
+  }, [])
+
+  const handleUnlock = () => {
+    // Trigger the unlock modal via global function
+    if (typeof window !== 'undefined' && (window as any).__haushalUnlock) {
+      (window as any).__haushalUnlock()
+    }
+  }
+
+  // Base links always visible
+  const baseLinks = [
     { href: '/', label: 'Dashboard' },
-    { href: '/kids', label: 'Kids' },
-    { href: '/tasks', label: 'Tasks' },
     { href: '/history', label: 'History' },
   ]
+
+  // Protected links only visible when authenticated
+  const protectedLinks = [
+    { href: '/kids', label: 'Kids' },
+    { href: '/tasks', label: 'Tasks' },
+  ]
+
+  const allLinks = isAuthenticated ? [...baseLinks, ...protectedLinks] : baseLinks
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -33,8 +72,8 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-4">
-            {links.map((link) => (
+          <div className="hidden md:flex space-x-4 items-center">
+            {allLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -47,6 +86,17 @@ export default function Navigation() {
                 {link.label}
               </Link>
             ))}
+            {!isAuthenticated && (
+              <button
+                onClick={handleUnlock}
+                className="ml-4 px-4 py-2 bg-yellow-500 text-white rounded-md text-sm font-medium hover:bg-yellow-600 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Unlock
+              </button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -94,7 +144,7 @@ export default function Navigation() {
       {mobileMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {links.map((link) => (
+            {allLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -108,6 +158,20 @@ export default function Navigation() {
                 {link.label}
               </Link>
             ))}
+            {!isAuthenticated && (
+              <button
+                onClick={() => {
+                  handleUnlock()
+                  setMobileMenuOpen(false)
+                }}
+                className="w-full text-left px-3 py-2 bg-yellow-500 text-white rounded-md text-base font-medium hover:bg-yellow-600 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Unlock
+              </button>
+            )}
           </div>
         </div>
       )}

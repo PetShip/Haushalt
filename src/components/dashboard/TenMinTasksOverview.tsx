@@ -1,17 +1,34 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TaskStats } from '@/lib/analytics'
 import AddCompletionModal from './AddCompletionModal'
 
 interface TenMinTasksOverviewProps {
   tasks: TaskStats[]
   kids: { id: string; firstName: string }[]
+  pinRequired?: boolean
 }
 
-export default function TenMinTasksOverview({ tasks, kids }: TenMinTasksOverviewProps) {
+export default function TenMinTasksOverview({ tasks, kids, pinRequired = false }: TenMinTasksOverviewProps) {
   const [showModal, setShowModal] = useState(false)
   const [selectedTask, setSelectedTask] = useState<{ id: string; title: string; assignedKids?: { kidId: string; kidName: string }[] } | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    const checkAuth = () => {
+      if (!pinRequired) {
+        setIsAuthenticated(true)
+        return
+      }
+      const storedPin = sessionStorage.getItem('haushalt_pin')
+      setIsAuthenticated(!!storedPin)
+    }
+
+    checkAuth()
+    const interval = setInterval(checkAuth, 500)
+    return () => clearInterval(interval)
+  }, [pinRequired])
 
   // Calculate total points per kid across all 10-minute tasks (only for tasks they're assigned to)
   const kidPoints = kids.map((kid) => {
@@ -116,7 +133,7 @@ export default function TenMinTasksOverview({ tasks, kids }: TenMinTasksOverview
         </div>
 
         {/* Quick add buttons for 10-minute tasks */}
-        {tasks.length > 0 && (
+        {tasks.length > 0 && isAuthenticated && (
           <div className="mt-6 pt-4 border-t border-gray-200">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Add</h3>
             <div className="flex flex-wrap gap-2">
