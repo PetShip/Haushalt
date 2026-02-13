@@ -15,6 +15,26 @@ export default function FairnessPanel({ weeklyStats, monthlyStats }: FairnessPan
     return [...stats].sort((a, b) => b.totalCompletions - a.totalCompletions)
   }
 
+  const getPositionColor = (stats: KidStats[], index: number) => {
+    if (stats.length === 0) return 'bg-gray-50'
+    
+    const currentCompletions = stats[index].totalCompletions
+    const topCompletions = stats[0].totalCompletions
+    const bottomCompletions = stats[stats.length - 1].totalCompletions
+    
+    // Check if tied for first place
+    if (currentCompletions === topCompletions) {
+      return 'bg-green-50 border border-green-200'
+    }
+    
+    // Check if tied for last place (and there's more than one kid)
+    if (stats.length > 1 && currentCompletions === bottomCompletions) {
+      return 'bg-yellow-50 border border-yellow-200'
+    }
+    
+    return 'bg-gray-50'
+  }
+
   const weeklyLeaderboard = getLeaderboard(weeklyStats)
   const monthlyLeaderboard = getLeaderboard(monthlyStats)
 
@@ -30,13 +50,7 @@ export default function FairnessPanel({ weeklyStats, monthlyStats }: FairnessPan
             {weeklyLeaderboard.map((stat, index) => (
               <div
                 key={stat.kidId}
-                className={`p-3 rounded-lg ${
-                  index === 0
-                    ? 'bg-green-50 border border-green-200'
-                    : index === weeklyLeaderboard.length - 1 && weeklyLeaderboard.length > 1
-                    ? 'bg-yellow-50 border border-yellow-200'
-                    : 'bg-gray-50'
-                }`}
+                className={`p-3 rounded-lg ${getPositionColor(weeklyLeaderboard, index)}`}
               >
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{stat.kidName}</span>
@@ -80,13 +94,7 @@ export default function FairnessPanel({ weeklyStats, monthlyStats }: FairnessPan
             {monthlyLeaderboard.map((stat, index) => (
               <div
                 key={stat.kidId}
-                className={`p-3 rounded-lg ${
-                  index === 0
-                    ? 'bg-green-50 border border-green-200'
-                    : index === monthlyLeaderboard.length - 1 && monthlyLeaderboard.length > 1
-                    ? 'bg-yellow-50 border border-yellow-200'
-                    : 'bg-gray-50'
-                }`}
+                className={`p-3 rounded-lg ${getPositionColor(monthlyLeaderboard, index)}`}
               >
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{stat.kidName}</span>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TaskStats } from '@/lib/analytics'
 import AddCompletionModal from './AddCompletionModal'
 
@@ -8,10 +8,32 @@ interface TaskGroupCardProps {
   title: string
   tasks: TaskStats[]
   kids: { id: string; firstName: string }[]
+  pinRequired: boolean
 }
 
-export default function TaskGroupCard({ title, tasks, kids }: TaskGroupCardProps) {
+export default function TaskGroupCard({ title, tasks, kids, pinRequired }: TaskGroupCardProps) {
   const [selectedTask, setSelectedTask] = useState<{ id: string; title: string } | null>(null)
+  const [hasPin, setHasPin] = useState(false)
+
+  useEffect(() => {
+    if (!pinRequired) {
+      setHasPin(true)
+      return
+    }
+    
+    const storedPin = sessionStorage.getItem('haushalt_pin')
+    setHasPin(!!storedPin)
+  }, [pinRequired])
+
+  const isAuthorized = hasPin || !pinRequired
+
+  const handleAddClick = (taskId: string, taskTitle: string) => {
+    if (!isAuthorized) {
+      alert('Please enter your PIN to add completions. Visit the Tasks or Kids page to enter your PIN.')
+      return
+    }
+    setSelectedTask({ id: taskId, title: taskTitle })
+  }
 
   if (tasks.length === 0) {
     return (
@@ -32,10 +54,13 @@ export default function TaskGroupCard({ title, tasks, kids }: TaskGroupCardProps
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-lg">{task.taskTitle}</h3>
                 <button
-                  onClick={() =>
-                    setSelectedTask({ id: task.taskId, title: task.taskTitle })
-                  }
-                  className="bg-primary-600 text-white px-3 py-1 rounded-md hover:bg-primary-700 transition-colors text-sm"
+                  onClick={() => handleAddClick(task.taskId, task.taskTitle)}
+                  className={`px-3 py-1 rounded-md transition-colors text-sm ${
+                    isAuthorized
+                      ? 'bg-primary-600 text-white hover:bg-primary-700'
+                      : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                  }`}
+                  title={!isAuthorized ? 'PIN required to add completions' : 'Add completion'}
                 >
                   + Add
                 </button>
