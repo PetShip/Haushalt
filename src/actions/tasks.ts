@@ -8,6 +8,7 @@ import { validatePin } from '@/lib/pin'
 const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   group: z.enum(['REGULAR', 'TEN_MIN']),
+  kidIds: z.array(z.string()).optional(),
   pin: z.string(),
 })
 
@@ -27,6 +28,12 @@ const deleteTaskSchema = z.object({
   pin: z.string(),
 })
 
+const updateTaskKidsSchema = z.object({
+  taskId: z.string(),
+  kidIds: z.array(z.string()),
+  pin: z.string(),
+})
+
 export async function createTask(data: z.infer<typeof createTaskSchema>) {
   const validated = createTaskSchema.parse(data)
 
@@ -40,6 +47,20 @@ export async function createTask(data: z.infer<typeof createTaskSchema>) {
       group: validated.group,
     },
   })
+
+  // If kidIds are provided, create assignments. Otherwise, assign to all active kids
+  const kidIds = validated.kidIds && validated.kidIds.length > 0 
+    ? validated.kidIds 
+    : (await prisma.kid.findMany({ where: { isActive: true } })).map(k => k.id)
+
+  if (kidIds.length > 0) {
+    await prisma.taskKidAssignment.createMany({
+      data: kidIds.map(kidId => ({
+        taskId: task.id,
+        kidId,
+      })),
+    })
+  }
 
   revalidatePath('/')
   revalidatePath('/tasks')
@@ -125,6 +146,73 @@ export async function getTasks() {
 export async function getActiveTasks() {
   return prisma.task.findMany({
     where: { isActive: true },
+    orderBy: { title: 'asc' },
+  })
+}
+
+export async function updateTaskKids(data: z.infer<typeof updateTaskKidsSchema>) {
+  const validated = updateTaskKidsSchema.parse(data)
+
+  if (!validatePin(validated.pin)) {
+    throw new Error('Invalid PIN')
+  }
+
+  // Delete existing assignments
+  await prisma.taskKidAssignment.deleteMany({
+    where: { taskId: validated.taskId },
+  })
+
+  // Create new assignments
+  if (validated.kidIds.length > 0) {
+    await prisma.taskKidAssignment.createMany({
+      data: validated.kidIds.map(kidId => ({
+        taskId: validated.taskId,
+        kidId,
+      })),
+    })
+  }
+
+  revalidatePath('/')
+  revalidatePath('/tasks')
+  revalidatePath('/history')
+
+  return { success: true }
+}
+
+export async function getTasksWithKids() {
+  return prisma.task.findMany({
+    include: {
+      kidAssignments: {
+        include: {
+          kid: true,
+        },
+      },
+    },
+    orderBy: { title: 'asc' },
+  })
+}
+
+export async function getActiveTasksWithKids() {
+  return prisma.task.findMany({
+    where: { isActive: true },
+    include: {
+      kidAssignments: {
+        include: {
+          kid: {
+            select: {
+              id: true,
+              firstName: true,
+              isActive: true,
+            },
+          },
+        },
+        where: {
+          kid: {
+            isActive: true,
+          },
+        },
+      },
+    },
     orderBy: { title: 'asc' },
   })
 }

@@ -12,6 +12,7 @@ export interface TaskStats {
   taskTitle: string
   totalCompletions: number
   completionsByKid: { kidId: string; kidName: string; count: number }[]
+  assignedKids: { kidId: string; kidName: string }[]
 }
 
 export async function getKidStats(
@@ -65,6 +66,22 @@ export async function getTaskStats(
           kid: true,
         },
       },
+      kidAssignments: {
+        include: {
+          kid: {
+            select: {
+              id: true,
+              firstName: true,
+              isActive: true,
+            },
+          },
+        },
+        where: {
+          kid: {
+            isActive: true,
+          },
+        },
+      },
     },
   })
 
@@ -86,11 +103,17 @@ export async function getTaskStats(
       [] as { kidId: string; kidName: string; count: number }[]
     )
 
+    const assignedKids = task.kidAssignments.map((assignment) => ({
+      kidId: assignment.kid.id,
+      kidName: assignment.kid.firstName,
+    }))
+
     return {
       taskId: task.id,
       taskTitle: task.title,
       totalCompletions: task.completions.length,
       completionsByKid,
+      assignedKids,
     }
   })
 }
