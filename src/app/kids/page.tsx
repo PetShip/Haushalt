@@ -1,4 +1,4 @@
-import { getKids } from '@/actions/kids'
+import { getActiveKids } from '@/actions/kids'
 import { isPinRequired } from '@/lib/pin'
 import KidsList from '@/components/kids/KidsList'
 import AddKidForm from '@/components/kids/AddKidForm'
@@ -7,7 +7,7 @@ import PinProtectedContent from '@/components/PinProtectedContent'
 export const dynamic = 'force-dynamic'
 
 export default async function KidsPage() {
-  const kids = await getKids()
+  const kids = await getActiveKids()
   const pinRequired = await isPinRequired()
 
   return (
@@ -21,29 +21,22 @@ export default async function KidsPage() {
         pinRequired={pinRequired}
         readOnlyChildren={
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-bold mb-4">All Kids</h2>
+            <h2 className="text-xl font-bold mb-4">Active Kids</h2>
             <div className="space-y-2">
               {kids.map((kid) => (
                 <div
                   key={kid.id}
-                  className={`p-4 rounded-lg border ${
-                    kid.isActive ? 'bg-white border-gray-200' : 'bg-gray-100 border-gray-300'
-                  }`}
+                  className="p-4 rounded-lg border bg-white border-gray-200"
                 >
                   <div className="flex items-center gap-2">
-                    <span className={kid.isActive ? 'font-medium' : 'text-gray-500'}>
+                    <span className="font-medium">
                       {kid.firstName}
                     </span>
-                    {!kid.isActive && (
-                      <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded">
-                        Inactive
-                      </span>
-                    )}
                   </div>
                 </div>
               ))}
               {kids.length === 0 && (
-                <p className="text-gray-500">No kids yet.</p>
+                <p className="text-gray-500">No active kids yet.</p>
               )}
             </div>
           </div>
@@ -51,7 +44,7 @@ export default async function KidsPage() {
       >
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <h2 className="text-xl font-bold mb-4">All Kids</h2>
+            <h2 className="text-xl font-bold mb-4">Active Kids</h2>
             <KidsList kids={kids} />
           </div>
 
