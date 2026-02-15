@@ -47,7 +47,7 @@ export async function getKidStats(
 export async function getTaskStats(
   startDate: Date,
   endDate: Date = new Date(),
-  group?: 'REGULAR' | 'TEN_MIN'
+  group?: 'REGULAR' | 'TEN_MIN' | 'TV_PENALTY'
 ): Promise<TaskStats[]> {
   const tasks = await prisma.task.findMany({
     where: {
@@ -83,6 +83,7 @@ export async function getTaskStats(
         },
       },
     },
+    orderBy: [{ order: 'asc' }, { title: 'asc' }],
   })
 
   return tasks.map((task) => {
@@ -126,4 +127,39 @@ export function calculateFairness(stats: KidStats[]): number {
   const min = Math.min(...completions)
 
   return max - min
+}
+
+export async function getTvPenaltyStats(
+  startDate: Date,
+  endDate: Date = new Date()
+): Promise<{ kidId: string; kidName: string; totalMinutes: number; count: number }[]> {
+  const kids = await prisma.kid.findMany({
+    where: { isActive: true },
+    include: {
+      completions: {
+        where: {
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+          task: {
+            group: 'TV_PENALTY',
+          },
+        },
+        include: {
+          task: true,
+        },
+      },
+    },
+  })
+
+  return kids.map((kid) => ({
+    kidId: kid.id,
+    kidName: kid.firstName,
+    totalMinutes: kid.completions.reduce(
+      (sum, completion) => sum + (completion.minutes || 0),
+      0
+    ),
+    count: kid.completions.length,
+  }))
 }

@@ -74,3 +74,95 @@ export async function getRecentCompletions(days: number = 14) {
     },
   })
 }
+
+const quickTenMinuteTaskSchema = z.object({
+  kidId: z.string(),
+  minutes: z.number().min(1).max(60).optional().default(10),
+  pin: z.string(),
+})
+
+export async function logQuickTenMinuteTask(data: z.infer<typeof quickTenMinuteTaskSchema>) {
+  const validated = quickTenMinuteTaskSchema.parse(data)
+
+  if (!validatePin(validated.pin)) {
+    throw new Error('Invalid PIN')
+  }
+
+  // Find or create a generic "10-Minute Task" task
+  let task = await prisma.task.findFirst({
+    where: {
+      title: '10-Minute Task',
+      group: 'TEN_MIN',
+    },
+  })
+
+  if (!task) {
+    task = await prisma.task.create({
+      data: {
+        title: '10-Minute Task',
+        group: 'TEN_MIN',
+        isActive: true,
+        order: 0,
+      },
+    })
+  }
+
+  const completion = await prisma.completionLog.create({
+    data: {
+      kidId: validated.kidId,
+      taskId: task.id,
+      minutes: validated.minutes,
+    },
+  })
+
+  revalidatePath('/')
+  revalidatePath('/history')
+
+  return completion
+}
+
+const tvPenaltySchema = z.object({
+  kidId: z.string(),
+  minutes: z.number().min(5).max(30),
+  pin: z.string(),
+})
+
+export async function logTvPenalty(data: z.infer<typeof tvPenaltySchema>) {
+  const validated = tvPenaltySchema.parse(data)
+
+  if (!validatePin(validated.pin)) {
+    throw new Error('Invalid PIN')
+  }
+
+  // Find or create a TV Penalty task
+  let task = await prisma.task.findFirst({
+    where: {
+      title: 'TV Penalty',
+      group: 'TV_PENALTY',
+    },
+  })
+
+  if (!task) {
+    task = await prisma.task.create({
+      data: {
+        title: 'TV Penalty',
+        group: 'TV_PENALTY',
+        isActive: true,
+        order: 999, // Put penalties at the end
+      },
+    })
+  }
+
+  const completion = await prisma.completionLog.create({
+    data: {
+      kidId: validated.kidId,
+      taskId: task.id,
+      minutes: validated.minutes,
+    },
+  })
+
+  revalidatePath('/')
+  revalidatePath('/history')
+
+  return completion
+}

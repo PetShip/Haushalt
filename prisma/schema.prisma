@@ -25,8 +25,9 @@ model Kid {
 model Task {
   id        String    @id @default(cuid())
   title     String
-  group     String    // "REGULAR" or "TEN_MIN"
+  group     String    // "REGULAR", "TEN_MIN", or "TV_PENALTY"
   isActive  Boolean   @default(true)
+  order     Int       @default(0)
   createdAt DateTime  @default(now())
   
   completions CompletionLog[]
@@ -64,4 +65,22 @@ model TaskKidAssignment {
   @@index([taskId])
   @@index([kidId])
   @@map("task_kid_assignments")
+}
+
+model SleepingArrangement {
+  id        String   @id @default(cuid())
+  combination String  // "paul-rosalie" or "paul-mavi"
+  createdAt DateTime @default(now())
+  
+  @@map("sleeping_arrangements")
+}
+
+model LoginLog {
+  id        String   @id @default(cuid())
+  ipAddress String
+  userAgent String?
+  createdAt DateTime @default(now())
+  
+  @@index([createdAt])
+  @@map("login_logs")
 }

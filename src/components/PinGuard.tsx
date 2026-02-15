@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode, useState, useEffect } from 'react'
+import { logLogin } from '@/actions/loginLogs'
 
 interface PinGuardProps {
   children: ReactNode
@@ -15,7 +16,7 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
   const [readOnly, setReadOnly] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -24,6 +25,13 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
     setPin(inputPin)
     setReadOnly(false)
     setShowModal(false)
+
+    // Log the login
+    try {
+      await logLogin()
+    } catch (err) {
+      console.error('Failed to log login:', err)
+    }
   }
 
   const handleUnlock = () => {
