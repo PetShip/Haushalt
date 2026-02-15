@@ -248,6 +248,18 @@ const reorderTasksSchema = z.object({
   pin: z.string(),
 })
 
+export async function getActiveTasksWithOrder() {
+  return prisma.task.findMany({
+    where: { isActive: true, group: 'REGULAR' },
+    select: {
+      id: true,
+      title: true,
+      order: true,
+    },
+    orderBy: [{ order: 'asc' }, { title: 'asc' }],
+  })
+}
+
 export async function reorderTasks(data: z.infer<typeof reorderTasksSchema>) {
   const validated = reorderTasksSchema.parse(data)
 

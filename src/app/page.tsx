@@ -1,18 +1,20 @@
 import { getActiveKids } from '@/actions/kids'
-import { getActiveTasks } from '@/actions/tasks'
+import { getActiveTasks, getActiveTasksWithKids, getActiveTasksWithOrder } from '@/actions/tasks'
 import { getTaskStats, getTvPenaltyStats } from '@/lib/analytics'
 import { isPinRequired } from '@/lib/pin'
 import RegularTaskChart from '@/components/dashboard/RegularTaskChart'
 import TenMinTasksOverview from '@/components/dashboard/TenMinTasksOverview'
 import TvPenaltiesOverview from '@/components/dashboard/TvPenaltiesOverview'
 import QuickActions from '@/components/dashboard/QuickActions'
+import TaskOrdering from '@/components/dashboard/TaskOrdering'
 
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const [kids, tasks, pinRequired] = await Promise.all([
+  const [kids, tasks, tasksWithOrder, pinRequired] = await Promise.all([
     getActiveKids(), 
     getActiveTasks(),
+    getActiveTasksWithOrder(),
     isPinRequired(),
   ])
 
@@ -74,6 +76,14 @@ export default async function DashboardPage() {
           <div className="lg:col-span-1 space-y-6">
             {/* Quick Actions */}
             <QuickActions kids={kids} pinRequired={pinRequired} />
+            
+            {/* Task Ordering */}
+            {tasksWithOrder.length > 0 && (
+              <TaskOrdering 
+                tasks={tasksWithOrder} 
+                pinRequired={pinRequired} 
+              />
+            )}
             
             {/* 10-Minute Tasks Overview */}
             <TenMinTasksOverview tasks={tenMinTaskStats} kids={kids} pinRequired={pinRequired} />
