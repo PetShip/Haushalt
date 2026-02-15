@@ -1,13 +1,17 @@
 import { getRecentLogins } from '@/actions/loginLogs'
+import { isPinRequired } from '@/lib/pin'
 import PinProtectedContent from '@/components/PinProtectedContent'
 
 export const dynamic = 'force-dynamic'
 
 export default async function LoginsPage() {
-  const logins = await getRecentLogins(100)
+  const [logins, pinRequired] = await Promise.all([
+    getRecentLogins(100),
+    isPinRequired(),
+  ])
 
   return (
-    <PinProtectedContent>
+    <PinProtectedContent pinRequired={pinRequired}>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Login History</h1>
