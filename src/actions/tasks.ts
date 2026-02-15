@@ -7,7 +7,7 @@ import { validatePin } from '@/lib/pin'
 
 const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  group: z.enum(['REGULAR', 'TEN_MIN']),
+  group: z.enum(['REGULAR', 'TEN_MIN', 'TV_PENALTY']),
   kidIds: z.array(z.string()).optional(),
   pin: z.string(),
 })
@@ -146,7 +146,7 @@ export async function getTasks() {
 export async function getActiveTasks() {
   return prisma.task.findMany({
     where: { isActive: true },
-    orderBy: { title: 'asc' },
+    orderBy: [{ order: 'asc' }, { title: 'asc' }],
   })
 }
 
@@ -213,6 +213,60 @@ export async function getActiveTasksWithKids() {
         },
       },
     },
-    orderBy: { title: 'asc' },
+    orderBy: [{ order: 'asc' }, { title: 'asc' }],
   })
+}
+
+const updateTaskOrderSchema = z.object({
+  taskId: z.string(),
+  newOrder: z.number(),
+  pin: z.string(),
+})
+
+export async function updateTaskOrder(data: z.infer<typeof updateTaskOrderSchema>) {
+  const validated = updateTaskOrderSchema.parse(data)
+
+  if (!validatePin(validated.pin)) {
+    throw new Error('Invalid PIN')
+  }
+
+  const task = await prisma.task.update({
+    where: { id: validated.taskId },
+    data: {
+      order: validated.newOrder,
+    },
+  })
+
+  revalidatePath('/')
+  revalidatePath('/tasks')
+
+  return task
+}
+
+const reorderTasksSchema = z.object({
+  taskIds: z.array(z.string()),
+  pin: z.string(),
+})
+
+export async function reorderTasks(data: z.infer<typeof reorderTasksSchema>) {
+  const validated = reorderTasksSchema.parse(data)
+
+  if (!validatePin(validated.pin)) {
+    throw new Error('Invalid PIN')
+  }
+
+  // Update each task with its new order
+  await Promise.all(
+    validated.taskIds.map((taskId, index) =>
+      prisma.task.update({
+        where: { id: taskId },
+        data: { order: index },
+      })
+    )
+  )
+
+  revalidatePath('/')
+  revalidatePath('/tasks')
+
+  return { success: true }
 }

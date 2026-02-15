@@ -44,12 +44,14 @@ export default function Navigation() {
   const baseLinks = [
     { href: '/', label: 'Dashboard' },
     { href: '/history', label: 'History' },
+    { href: '/sleeping', label: 'Sleeping' },
   ]
 
   // Protected links only visible when authenticated
   const protectedLinks = [
     { href: '/kids', label: 'Kids' },
     { href: '/tasks', label: 'Tasks' },
+    { href: '/logins', label: 'Logins' },
   ]
 
   const allLinks = isAuthenticated ? [...baseLinks, ...protectedLinks] : baseLinks
