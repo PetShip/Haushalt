@@ -4,6 +4,15 @@ Simple web app to track kids' household chores and contributions.
 
 ## Setup
 
+### Prerequisites
+
+Ensure PostgreSQL is installed and running on your system:
+- PostgreSQL server should be accessible at `localhost:5432`
+- Create a database named `haushalt` and a user with appropriate permissions
+- Or update the `DATABASE_URL` in your `.env` file to match your PostgreSQL configuration
+
+### Installation
+
 1. Install dependencies:
    ```bash
    npm install
@@ -44,5 +53,5 @@ Simple web app to track kids' household chores and contributions.
 - Next.js 14 (App Router)
 - TypeScript
 - Tailwind CSS
-- SQLite + Prisma
+- PostgreSQL + Prisma
 - Server Actions
