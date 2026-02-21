@@ -49,6 +49,7 @@ export default function Navigation() {
 
   // Protected links only visible when authenticated
   const protectedLinks = [
+    { href: '/reorder', label: 'Reorder' },
     { href: '/kids', label: 'Kids' },
     { href: '/tasks', label: 'Tasks' },
     { href: '/logins', label: 'Logins' },

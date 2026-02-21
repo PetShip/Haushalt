@@ -279,6 +279,7 @@ export async function reorderTasks(data: z.infer<typeof reorderTasksSchema>) {
 
   revalidatePath('/')
   revalidatePath('/tasks')
+  revalidatePath('/reorder')
 
   return { success: true }
 }
