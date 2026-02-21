@@ -34,6 +34,19 @@ export default function QuickActions({ kids, pinRequired = false }: QuickActions
     return () => clearInterval(interval)
   }, [pinRequired])
 
+  // Prevent background scroll on Chrome iOS when any modal is open
+  useEffect(() => {
+    const isModalOpen = showTenMinModal || showTvPenaltyModal
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [showTenMinModal, showTvPenaltyModal])
+
   const handleTenMinTask = async () => {
     if (!selectedKid) {
       setError('Please select a child')

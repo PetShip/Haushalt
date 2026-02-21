@@ -16,6 +16,18 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
   const [readOnly, setReadOnly] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
 
+  // Prevent background scroll on Chrome iOS when modal is open
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [showModal])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -90,7 +102,6 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
                   value={inputPin}
                   onChange={(e) => setInputPin(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  autoFocus
                 />
                 {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
               </div>

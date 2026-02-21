@@ -41,6 +41,18 @@ export default function TvPenaltiesOverview({ penalties, kids, pinRequired = fal
     return () => clearInterval(interval)
   }, [pinRequired])
 
+  // Prevent background scroll on Chrome iOS when modal is open
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [showModal])
+
   const handleAddPenalty = async () => {
     if (!selectedKid) {
       setError('Please select a child')
