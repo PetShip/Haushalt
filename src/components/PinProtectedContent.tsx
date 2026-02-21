@@ -20,6 +20,18 @@ export default function PinProtectedContent({
   const [readOnly, setReadOnly] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
+  // Prevent background scroll on Chrome iOS when modal is open
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [showModal])
+
   useEffect(() => {
     if (!pinRequired) {
       setPin('authorized')
@@ -88,7 +100,6 @@ export default function PinProtectedContent({
                     value={inputPin}
                     onChange={(e) => setInputPin(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    autoFocus
                   />
                   {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
                 </div>

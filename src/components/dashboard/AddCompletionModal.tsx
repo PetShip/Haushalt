@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createCompletion } from '@/actions/logs'
 
 interface AddCompletionModalProps {
@@ -13,6 +13,14 @@ export default function AddCompletionModal({ task, kids, onClose }: AddCompletio
   const [selectedKidId, setSelectedKidId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Prevent background scroll on Chrome iOS when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
 
   // Filter kids to only show those assigned to this task
   const availableKids = task.assignedKids && task.assignedKids.length > 0
