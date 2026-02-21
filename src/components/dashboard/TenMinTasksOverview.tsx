@@ -141,7 +141,7 @@ export default function TenMinTasksOverview({ tasks, kids, pinRequired = false }
                 <button
                   key={task.taskId}
                   onClick={() => handleAddClick(task)}
-                  className="px-3 py-1 bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200 transition-colors text-sm"
+                  className="px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
                 >
                   + {task.taskTitle}
                 </button>
