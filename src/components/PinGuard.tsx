@@ -2,6 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react'
 import { logLogin } from '@/actions/loginLogs'
+import { checkPin } from '@/actions/pin'
 
 interface PinGuardProps {
   children: ReactNode
@@ -15,6 +16,8 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
   const [error, setError] = useState('')
   const [readOnly, setReadOnly] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [failedAttempts, setFailedAttempts] = useState(0)
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null)
 
   // Prevent background scroll on Chrome iOS when modal is open
   useEffect(() => {
@@ -32,7 +35,29 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
     e.preventDefault()
     setError('')
 
-    // Store in sessionStorage (validation happens server-side)
+    if (lockedUntil && Date.now() < lockedUntil) {
+      const secondsLeft = Math.ceil((lockedUntil - Date.now()) / 1000)
+      setError(`Too many failed attempts. Please wait ${secondsLeft} seconds.`)
+      return
+    }
+
+    const isValid = await checkPin(inputPin)
+    if (!isValid) {
+      const newAttempts = failedAttempts + 1
+      setFailedAttempts(newAttempts)
+      if (newAttempts >= 3) {
+        const lockDuration = Math.min(30 * Math.pow(2, newAttempts - 3), 300) * 1000
+        setLockedUntil(Date.now() + lockDuration)
+        setError(`Too many failed attempts. Please wait ${lockDuration / 1000} seconds.`)
+      } else {
+        setError('Incorrect PIN. Please try again.')
+      }
+      return
+    }
+
+    setFailedAttempts(0)
+    setLockedUntil(null)
+    // Store in sessionStorage (validation already done above)
     sessionStorage.setItem('haushalt_pin', inputPin)
     setPin(inputPin)
     setReadOnly(false)

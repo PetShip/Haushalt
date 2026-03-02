@@ -15,17 +15,12 @@ export default async function DashboardPage() {
     isPinRequired(),
   ])
 
-  // Calculate date ranges
-  const now = new Date()
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-
-  // Get statistics - only need task stats for the new dashboard
+  // Get statistics for all time so the fairness view always reflects cumulative contributions
   const [regularTaskStats, tenMinTaskStats, tvPenaltyStats] = await Promise.all([
-    getTaskStats(weekAgo, now, 'REGULAR'),
-    getTaskStats(weekAgo, now, 'TEN_MIN'),
-    getTvPenaltyStats(weekAgo, now),
+    getTaskStats(undefined, undefined, 'REGULAR'),
+    getTaskStats(undefined, undefined, 'TEN_MIN'),
+    getTvPenaltyStats(),
   ])
-
   return (
     <div className="space-y-6">
       <div>
