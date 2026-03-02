@@ -16,19 +16,16 @@ export interface TaskStats {
 }
 
 export async function getKidStats(
-  startDate: Date,
+  startDate?: Date,
   endDate: Date = new Date()
 ): Promise<KidStats[]> {
   const kids = await prisma.kid.findMany({
     where: { isActive: true },
     include: {
       completions: {
-        where: {
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-        },
+        where: startDate
+          ? { createdAt: { gte: startDate, lte: endDate } }
+          : undefined,
       },
     },
   })
@@ -45,7 +42,7 @@ export async function getKidStats(
 }
 
 export async function getTaskStats(
-  startDate: Date,
+  startDate?: Date,
   endDate: Date = new Date(),
   group?: 'REGULAR' | 'TEN_MIN' | 'TV_PENALTY'
 ): Promise<TaskStats[]> {
@@ -56,12 +53,9 @@ export async function getTaskStats(
     },
     include: {
       completions: {
-        where: {
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-        },
+        where: startDate
+          ? { createdAt: { gte: startDate, lte: endDate } }
+          : undefined,
         include: {
           kid: true,
         },
@@ -130,7 +124,7 @@ export function calculateFairness(stats: KidStats[]): number {
 }
 
 export async function getTvPenaltyStats(
-  startDate: Date,
+  startDate?: Date,
   endDate: Date = new Date()
 ): Promise<{ kidId: string; kidName: string; totalMinutes: number; count: number }[]> {
   const kids = await prisma.kid.findMany({
@@ -138,10 +132,7 @@ export async function getTvPenaltyStats(
     include: {
       completions: {
         where: {
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
+          ...(startDate ? { createdAt: { gte: startDate, lte: endDate } } : {}),
           task: {
             group: 'TV_PENALTY',
           },

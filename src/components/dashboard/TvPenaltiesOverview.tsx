@@ -115,7 +115,7 @@ export default function TvPenaltiesOverview({ penalties, kids, pinRequired = fal
           )}
         </div>
         <p className="text-gray-600 mb-6 text-sm">
-          Total TV time penalties for this week
+          Total TV time penalties (all time)
         </p>
 
         <div className="space-y-4">
@@ -181,7 +181,7 @@ export default function TvPenaltiesOverview({ penalties, kids, pinRequired = fal
             <div className="text-2xl font-bold text-red-600">
               {sortedPenalties.reduce((sum, p) => sum + p.totalMinutes, 0)}
             </div>
-            <div className="text-sm text-gray-600">Total Penalty Minutes This Week</div>
+            <div className="text-sm text-gray-600">Total Penalty Minutes (All Time)</div>
           </div>
         </div>
       </div>

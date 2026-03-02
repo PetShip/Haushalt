@@ -15,17 +15,12 @@ export default async function DashboardPage() {
     isPinRequired(),
   ])
 
-  // Calculate date ranges - use start of current month so data doesn't disappear mid-month
-  const now = new Date()
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-
-  // Get statistics - only need task stats for the new dashboard
+  // Get statistics for all time so the fairness view always reflects cumulative contributions
   const [regularTaskStats, tenMinTaskStats, tvPenaltyStats] = await Promise.all([
-    getTaskStats(startOfMonth, now, 'REGULAR'),
-    getTaskStats(startOfMonth, now, 'TEN_MIN'),
-    getTvPenaltyStats(startOfMonth, now),
+    getTaskStats(undefined, undefined, 'REGULAR'),
+    getTaskStats(undefined, undefined, 'TEN_MIN'),
+    getTvPenaltyStats(),
   ])
-
   return (
     <div className="space-y-6">
       <div>
