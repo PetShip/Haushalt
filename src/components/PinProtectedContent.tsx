@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode, useState, useEffect } from 'react'
+import { checkPin } from '@/actions/pin'
 
 interface PinProtectedContentProps {
   children: ReactNode
@@ -19,6 +20,8 @@ export default function PinProtectedContent({
   const [error, setError] = useState('')
   const [readOnly, setReadOnly] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [failedAttempts, setFailedAttempts] = useState(0)
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null)
 
   // Prevent background scroll on Chrome iOS when modal is open
   useEffect(() => {
@@ -54,15 +57,34 @@ export default function PinProtectedContent({
     setIsInitialized(true)
   }, [pinRequired])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    // Store PIN in sessionStorage. Server-side validation happens on every action.
-    // Invalid PINs will be rejected by the server, causing user-facing errors.
-    // This approach allows the user to access the UI while server validates on each request.
+    if (lockedUntil && Date.now() < lockedUntil) {
+      const secondsLeft = Math.ceil((lockedUntil - Date.now()) / 1000)
+      setError(`Too many failed attempts. Please wait ${secondsLeft} seconds.`)
+      return
+    }
+
+    const isValid = await checkPin(inputPin)
+    if (!isValid) {
+      const newAttempts = failedAttempts + 1
+      setFailedAttempts(newAttempts)
+      if (newAttempts >= 3) {
+        const lockDuration = Math.min(30 * Math.pow(2, newAttempts - 3), 300) * 1000
+        setLockedUntil(Date.now() + lockDuration)
+        setError(`Too many failed attempts. Please wait ${lockDuration / 1000} seconds.`)
+      } else {
+        setError('Incorrect PIN. Please try again.')
+      }
+      return
+    }
+
+    setFailedAttempts(0)
+    setLockedUntil(null)
     sessionStorage.setItem('haushalt_pin', inputPin)
-    sessionStorage.removeItem('haushalt_readonly') // Clear read-only mode when PIN is entered
+    sessionStorage.removeItem('haushalt_readonly')
     setPin(inputPin)
     setReadOnly(false)
     setShowModal(false)
