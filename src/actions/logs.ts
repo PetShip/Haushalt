@@ -127,6 +127,12 @@ const tvPenaltySchema = z.object({
   pin: z.string(),
 })
 
+const tvPenaltyReductionSchema = z.object({
+  kidId: z.string(),
+  minutes: z.number().min(5).max(10),
+  pin: z.string(),
+})
+
 export async function logTvPenalty(data: z.infer<typeof tvPenaltySchema>) {
   const validated = tvPenaltySchema.parse(data)
 
@@ -158,6 +164,46 @@ export async function logTvPenalty(data: z.infer<typeof tvPenaltySchema>) {
       kidId: validated.kidId,
       taskId: task.id,
       minutes: validated.minutes,
+    },
+  })
+
+  revalidatePath('/')
+  revalidatePath('/history')
+
+  return completion
+}
+
+export async function reduceTvPenalty(data: z.infer<typeof tvPenaltyReductionSchema>) {
+  const validated = tvPenaltyReductionSchema.parse(data)
+
+  if (!validatePin(validated.pin)) {
+    throw new Error('Invalid PIN')
+  }
+
+  // Find or create a TV Penalty task
+  let task = await prisma.task.findFirst({
+    where: {
+      title: 'TV Penalty',
+      group: 'TV_PENALTY',
+    },
+  })
+
+  if (!task) {
+    task = await prisma.task.create({
+      data: {
+        title: 'TV Penalty',
+        group: 'TV_PENALTY',
+        isActive: true,
+        order: 999,
+      },
+    })
+  }
+
+  const completion = await prisma.completionLog.create({
+    data: {
+      kidId: validated.kidId,
+      taskId: task.id,
+      minutes: -validated.minutes,
     },
   })
 

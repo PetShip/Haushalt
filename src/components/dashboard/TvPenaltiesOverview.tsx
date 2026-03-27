@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { logTvPenalty } from '@/actions/logs'
+import { logTvPenalty, reduceTvPenalty } from '@/actions/logs'
 import { useRouter } from 'next/navigation'
 
 interface TvPenalty {
@@ -21,6 +21,7 @@ export default function TvPenaltiesOverview({ penalties, kids, pinRequired = fal
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const [modalMode, setModalMode] = useState<'add' | 'reduce'>('add')
   const [selectedKid, setSelectedKid] = useState<string>('')
   const [minutes, setMinutes] = useState<number>(10)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -53,7 +54,22 @@ export default function TvPenaltiesOverview({ penalties, kids, pinRequired = fal
     }
   }, [showModal])
 
-  const handleAddPenalty = async () => {
+  const openModal = (mode: 'add' | 'reduce') => {
+    setModalMode(mode)
+    setMinutes(10)
+    setSelectedKid('')
+    setError(null)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setSelectedKid('')
+    setMinutes(10)
+    setError(null)
+  }
+
+  const handleSubmit = async () => {
     if (!selectedKid) {
       setError('Please select a child')
       return
@@ -69,13 +85,15 @@ export default function TvPenaltiesOverview({ penalties, kids, pinRequired = fal
     setError(null)
 
     try {
-      await logTvPenalty({ kidId: selectedKid, minutes, pin })
-      setShowModal(false)
-      setSelectedKid('')
-      setMinutes(10)
+      if (modalMode === 'add') {
+        await logTvPenalty({ kidId: selectedKid, minutes, pin })
+      } else {
+        await reduceTvPenalty({ kidId: selectedKid, minutes, pin })
+      }
+      closeModal()
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to log penalty')
+      setError(err instanceof Error ? err.message : 'Failed to update penalty')
     } finally {
       setIsSubmitting(false)
     }
@@ -106,12 +124,21 @@ export default function TvPenaltiesOverview({ penalties, kids, pinRequired = fal
             TV Penalties
           </h2>
           {isAuthenticated && (
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
-            >
-              + Add
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => openModal('reduce')}
+                aria-label="Reduce TV penalty"
+                className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+              >
+                − Reduce
+              </button>
+              <button
+                onClick={() => openModal('add')}
+                className="px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
+              >
+                + Add
+              </button>
+            </div>
           )}
         </div>
         <p className="text-gray-600 mb-6 text-sm">
@@ -186,11 +213,13 @@ export default function TvPenaltiesOverview({ penalties, kids, pinRequired = fal
         </div>
       </div>
 
-      {/* Add TV Penalty Modal */}
+      {/* Add / Reduce TV Penalty Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Add TV Penalty</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              {modalMode === 'add' ? 'Add TV Penalty' : 'Reduce TV Penalty'}
+            </h3>
 
             {error && (
               <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm">
@@ -219,52 +248,48 @@ export default function TvPenaltiesOverview({ penalties, kids, pinRequired = fal
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Penalty Duration
+                  {modalMode === 'add' ? 'Penalty Duration' : 'Reduction Amount'}
                 </label>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setMinutes(5)}
-                    className={`flex-1 px-4 py-2 rounded-md transition-colors ${
-                      minutes === 5
-                        ? 'bg-red-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    5 min
-                  </button>
-                  <button
-                    onClick={() => setMinutes(10)}
-                    className={`flex-1 px-4 py-2 rounded-md transition-colors ${
-                      minutes === 10
-                        ? 'bg-red-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    10 min
-                  </button>
+                  {([5, 10] as const).map((value) => {
+                    const isSelected = minutes === value
+                    const activeClass = modalMode === 'add' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+                    return (
+                      <button
+                        key={value}
+                        onClick={() => setMinutes(value)}
+                        className={`flex-1 px-4 py-2 rounded-md transition-colors ${
+                          isSelected ? activeClass : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {value} min
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => {
-                  setShowModal(false)
-                  setSelectedKid('')
-                  setMinutes(10)
-                  setError(null)
-                }}
+                onClick={closeModal}
                 className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
                 disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button
-                onClick={handleAddPenalty}
+                onClick={handleSubmit}
                 disabled={isSubmitting || !selectedKid}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className={`flex-1 px-4 py-2 text-white rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors ${
+                  modalMode === 'add'
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : 'bg-green-600 hover:bg-green-700'
+                }`}
               >
-                {isSubmitting ? 'Adding...' : 'Add Penalty'}
+                {isSubmitting
+                  ? modalMode === 'add' ? 'Adding...' : 'Reducing...'
+                  : modalMode === 'add' ? 'Add Penalty' : 'Reduce Penalty'}
               </button>
             </div>
           </div>

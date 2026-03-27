@@ -147,10 +147,10 @@ export async function getTvPenaltyStats(
   return kids.map((kid) => ({
     kidId: kid.id,
     kidName: kid.firstName,
-    totalMinutes: kid.completions.reduce(
-      (sum, completion) => sum + (completion.minutes || 0),
-      0
+    totalMinutes: Math.max(
+      0,
+      kid.completions.reduce((sum, completion) => sum + (completion.minutes || 0), 0)
     ),
-    count: kid.completions.length,
+    count: kid.completions.filter((c) => (c.minutes ?? 0) > 0).length,
   }))
 }
