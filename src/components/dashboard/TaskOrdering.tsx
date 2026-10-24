@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { useState, useEffect } from 'react'
 import { reorderTasks } from '@/actions/tasks'
 import { useRouter } from 'next/navigation'
@@ -23,7 +25,7 @@ export default function TaskOrdering({ tasks, pinRequired = false }: TaskOrderin
         setIsAuthenticated(true)
         return
       }
-      const storedPin = sessionStorage.getItem('haushalt_pin')
+      const storedPin = browserStorage.getItem('haushalt_pin')
       setIsAuthenticated(!!storedPin)
     }
 
@@ -58,7 +60,7 @@ export default function TaskOrdering({ tasks, pinRequired = false }: TaskOrderin
       return
     }
 
-    const pin = sessionStorage.getItem('haushalt_pin')
+    const pin = browserStorage.getItem('haushalt_pin')
     if (!pin) {
       setError('PIN not found. Please unlock again.')
       return

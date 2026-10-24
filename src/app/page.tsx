@@ -3,7 +3,6 @@ import { getActiveTasks } from '@/actions/tasks'
 import { getTaskStats, getTvPenaltyStats } from '@/lib/analytics'
 import { isPinRequired } from '@/lib/pin'
 import RegularTaskChart from '@/components/dashboard/RegularTaskChart'
-import TenMinTasksOverview from '@/components/dashboard/TenMinTasksOverview'
 import TvPenaltiesOverview from '@/components/dashboard/TvPenaltiesOverview'
 
 export const dynamic = 'force-dynamic'
@@ -16,9 +15,8 @@ export default async function DashboardPage() {
   ])
 
   // Get statistics for all time so the fairness view always reflects cumulative contributions
-  const [regularTaskStats, tenMinTaskStats, tvPenaltyStats] = await Promise.all([
+  const [regularTaskStats, tvPenaltyStats] = await Promise.all([
     getTaskStats(undefined, undefined, 'REGULAR'),
-    getTaskStats(undefined, undefined, 'TEN_MIN'),
     getTvPenaltyStats(),
   ])
   return (
@@ -67,7 +65,7 @@ export default async function DashboardPage() {
           {/* Right sidebar - takes 1 column */}
           <div className="lg:col-span-1 space-y-6">
             {/* 10-Minute Tasks Overview */}
-            <TenMinTasksOverview tasks={tenMinTaskStats} kids={kids} pinRequired={pinRequired} />
+
             
             {/* TV Penalties Overview */}
             <TvPenaltiesOverview penalties={tvPenaltyStats} kids={kids} pinRequired={pinRequired} />

@@ -1,10 +1,12 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
-export default function Navigation() {
+export default function Navigation({ pinRequired = true }: { pinRequired?: boolean }) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -12,8 +14,8 @@ export default function Navigation() {
   useEffect(() => {
     // Check authentication state from sessionStorage
     const checkAuth = () => {
-      const storedPin = sessionStorage.getItem('haushalt_pin')
-      setIsAuthenticated(!!storedPin)
+      const storedPin = browserStorage.getItem('haushalt_pin')
+      setIsAuthenticated(!pinRequired || !!storedPin)
     }
 
     checkAuth()
@@ -24,14 +26,16 @@ export default function Navigation() {
     }
 
     window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('haushalt-auth', handleStorageChange)
     // Also check periodically as sessionStorage doesn't trigger storage events in the same tab
     const interval = setInterval(checkAuth, 500)
 
     return () => {
       window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('haushalt-auth', handleStorageChange)
       clearInterval(interval)
     }
-  }, [])
+  }, [pinRequired])
 
   const handleUnlock = () => {
     // Trigger the unlock modal via global function
@@ -43,6 +47,7 @@ export default function Navigation() {
   // Base links always visible
   const baseLinks = [
     { href: '/', label: 'Dashboard' },
+    { href: '/chores', label: 'Chores' },
     { href: '/history', label: 'History' },
     { href: '/sleeping', label: 'Sleeping' },
   ]
@@ -75,7 +80,7 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-4 items-center">
+          <div className="hidden xl:flex space-x-1 items-center">
             {allLinks.map((link) => (
               <Link
                 key={link.href}
@@ -103,8 +108,10 @@ export default function Navigation() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="xl:hidden">
             <button
+              aria-expanded={mobileMenuOpen}
+              aria-label="Toggle navigation"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-primary-100 hover:text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
             >
@@ -145,7 +152,7 @@ export default function Navigation() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden">
+        <div className="xl:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {allLinks.map((link) => (
               <Link

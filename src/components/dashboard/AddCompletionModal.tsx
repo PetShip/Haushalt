@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { useState, useEffect } from 'react'
 import { createCompletion } from '@/actions/logs'
 
@@ -39,7 +41,7 @@ export default function AddCompletionModal({ task, kids, onClose }: AddCompletio
     setLoading(true)
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await createCompletion({
         kidId: selectedKidId,
         taskId: task.id,

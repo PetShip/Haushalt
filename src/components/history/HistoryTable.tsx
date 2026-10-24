@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { useState, useEffect } from 'react'
 import { CompletionLog, Kid, Task } from '@prisma/client'
 import { deleteCompletion } from '@/actions/logs'
@@ -20,7 +22,7 @@ export default function HistoryTable({ logs, pinRequired }: HistoryTableProps) {
         setIsAuthenticated(true)
         return
       }
-      const storedPin = sessionStorage.getItem('haushalt_pin')
+      const storedPin = browserStorage.getItem('haushalt_pin')
       setIsAuthenticated(!!storedPin)
     }
 
@@ -38,7 +40,7 @@ export default function HistoryTable({ logs, pinRequired }: HistoryTableProps) {
     setError('')
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await deleteCompletion({ id, pin })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete log')

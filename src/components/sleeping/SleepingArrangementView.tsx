@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { useState, useEffect } from 'react'
 import { toggleSleepingArrangement } from '@/actions/sleeping'
 import { useRouter } from 'next/navigation'
@@ -27,7 +29,7 @@ export default function SleepingArrangementView({
         setIsAuthenticated(true)
         return
       }
-      const storedPin = sessionStorage.getItem('haushalt_pin')
+      const storedPin = browserStorage.getItem('haushalt_pin')
       setIsAuthenticated(!!storedPin)
     }
 
@@ -42,7 +44,7 @@ export default function SleepingArrangementView({
       return
     }
 
-    const pin = sessionStorage.getItem('haushalt_pin')
+    const pin = browserStorage.getItem('haushalt_pin')
     if (!pin) {
       setError('PIN not found. Please unlock again.')
       return

@@ -7,7 +7,7 @@ import { validatePin } from '@/lib/pin'
 
 const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  group: z.enum(['REGULAR', 'TEN_MIN', 'TV_PENALTY']),
+  group: z.enum(['REGULAR', 'TV_PENALTY']),
   kidIds: z.array(z.string()).optional(),
   pin: z.string(),
 })
@@ -145,7 +145,7 @@ export async function getTasks() {
 
 export async function getActiveTasks() {
   return prisma.task.findMany({
-    where: { isActive: true },
+    where: { isActive: true, group: { not: 'TEN_MIN' } },
     orderBy: [{ order: 'asc' }, { title: 'asc' }],
   })
 }
@@ -194,7 +194,7 @@ export async function getTasksWithKids() {
 
 export async function getActiveTasksWithKids() {
   return prisma.task.findMany({
-    where: { isActive: true },
+    where: { isActive: true, group: { not: 'TEN_MIN' } },
     include: {
       kidAssignments: {
         include: {

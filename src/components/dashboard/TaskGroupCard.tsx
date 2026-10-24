@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { useState, useEffect } from 'react'
 import { TaskStats } from '@/lib/analytics'
 import AddCompletionModal from './AddCompletionModal'
@@ -21,7 +23,7 @@ export default function TaskGroupCard({ title, tasks, kids, pinRequired }: TaskG
       return
     }
     
-    const storedPin = sessionStorage.getItem('haushalt_pin')
+    const storedPin = browserStorage.getItem('haushalt_pin')
     setHasPin(!!storedPin)
   }, [pinRequired])
 

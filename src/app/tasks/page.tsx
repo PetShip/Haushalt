@@ -25,7 +25,7 @@ export default async function TasksPage() {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-bold mb-4">All Tasks</h2>
             <div className="space-y-2">
-              {tasks.map((task) => (
+              {tasks.filter(task => task.group !== 'TEN_MIN').map((task) => (
                 <div
                   key={task.id}
                   className={`p-4 rounded-lg border ${
@@ -37,7 +37,7 @@ export default async function TasksPage() {
                       {task.title}
                     </span>
                     <span className="text-xs bg-primary-100 text-primary-800 px-2 py-1 rounded">
-                      {task.group === 'REGULAR' ? 'Regular' : '10-Min'}
+                      {task.group === 'REGULAR' ? 'Regular' : 'TV Penalty'}
                     </span>
                     {!task.isActive && (
                       <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded">
@@ -47,7 +47,7 @@ export default async function TasksPage() {
                   </div>
                 </div>
               ))}
-              {tasks.length === 0 && (
+              {tasks.filter(task => task.group !== 'TEN_MIN').length === 0 && (
                 <p className="text-gray-500">No tasks yet.</p>
               )}
             </div>

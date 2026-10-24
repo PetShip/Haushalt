@@ -17,9 +17,23 @@ model Kid {
   createdAt DateTime @default(now())
   
   completions CompletionLog[]
+  choreWeeks ChoreWeek[]
   taskAssignments TaskKidAssignment[]
   
   @@map("kids")
+}
+
+model ChoreWeek {
+  id        String   @id @default(cuid())
+  kidId     String
+  weekStart String
+  completed Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+  kid       Kid      @relation(fields: [kidId], references: [id], onDelete: Cascade)
+
+  @@unique([kidId, weekStart])
+  @@index([weekStart])
+  @@map("chore_weeks")
 }
 
 model Task {

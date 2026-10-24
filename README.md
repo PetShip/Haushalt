@@ -55,3 +55,28 @@ Ensure PostgreSQL is installed and running on your system:
 - Tailwind CSS
 - PostgreSQL + Prisma
 - Server Actions
+
+## Chores and pocket money
+
+`/chores` records one housework confirmation per active child and ISO week.
+Weeks belong to the month containing their Monday, including weeks ending in
+another month. A child is eligible for monthly pocket money once all those
+weeks are confirmed and the final Sunday has passed (Europe/Vienna).
+This is an eligibility indicator, not a payment integration.
+Writes use the existing administrator PIN. Future weeks cannot be confirmed.
+
+The 10-minute category is archived in the UI; tasks and completion history
+remain in the database. Archived task names can be viewed under Tasks.
+
+Before running the updated app against a database, apply the new migration:
+
+```sh
+npx prisma migrate deploy
+npx prisma generate
+```
+
+Calendar and restricted-browser-storage checks:
+
+```sh
+node --test tests/chores.cjs
+```

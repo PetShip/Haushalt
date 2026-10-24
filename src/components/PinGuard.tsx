@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { ReactNode, useState, useEffect } from 'react'
 import { logLogin } from '@/actions/loginLogs'
 import { checkPin } from '@/actions/pin'
@@ -41,7 +43,13 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
       return
     }
 
-    const isValid = await checkPin(inputPin)
+    let isValid: boolean
+    try {
+      isValid = await checkPin(inputPin)
+    } catch {
+      setError('Could not connect. Please check your connection and try again.')
+      return
+    }
     if (!isValid) {
       const newAttempts = failedAttempts + 1
       setFailedAttempts(newAttempts)
@@ -58,7 +66,7 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
     setFailedAttempts(0)
     setLockedUntil(null)
     // Store in sessionStorage (validation already done above)
-    sessionStorage.setItem('haushalt_pin', inputPin)
+    browserStorage.setItem('haushalt_pin', inputPin)
     setPin(inputPin)
     setReadOnly(false)
     setShowModal(false)
@@ -84,7 +92,7 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
       return
     }
 
-    const storedPin = sessionStorage.getItem('haushalt_pin')
+    const storedPin = browserStorage.getItem('haushalt_pin')
     if (storedPin) {
       setPin(storedPin)
       setReadOnly(false)
@@ -104,14 +112,14 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
 
   // Show loading state while initializing
   if (!isInitialized) {
-    return null
+    return <>{children}</>
   }
 
   if (!pin && showModal) {
     return (
       <>
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+          <div role="dialog" aria-modal="true" aria-label="Enter PIN" className="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full mx-4 my-4">
             <h2 className="text-2xl font-bold mb-4">Enter PIN</h2>
             <p className="text-gray-600 mb-4">
               Enter your PIN to unlock full access to Kids and Tasks management.
@@ -122,6 +130,8 @@ export default function PinGuard({ children, pinRequired }: PinGuardProps) {
                   PIN
                 </label>
                 <input
+                  inputMode="numeric"
+                  autoComplete="off"
                   type="password"
                   id="pin"
                   value={inputPin}

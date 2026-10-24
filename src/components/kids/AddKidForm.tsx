@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { useState } from 'react'
 import { createKid } from '@/actions/kids'
 
@@ -20,7 +22,7 @@ export default function AddKidForm() {
     setLoading(true)
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await createKid({ firstName: firstName.trim(), pin })
       setFirstName('')
     } catch (err) {

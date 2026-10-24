@@ -5,3 +5,11 @@
 body {
   @apply bg-gray-50;
 }
+
+/* Keep controls readable without iOS focus zoom and make dialogs scrollable. */
+input, select, textarea { font-size: 16px; }
+button, a, input, select { touch-action: manipulation; }
+body { min-height: 100vh; min-height: 100dvh; overflow-wrap: break-word; }
+main { min-width: 0; padding-bottom: max(2rem, env(safe-area-inset-bottom)); }
+.fixed.inset-0 { overflow-y: auto; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+@media (max-height: 600px) { .fixed.inset-0 { align-items: flex-start; } }

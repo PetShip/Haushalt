@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { ReactNode, useState, useEffect } from 'react'
 import { checkPin } from '@/actions/pin'
 
@@ -42,8 +44,8 @@ export default function PinProtectedContent({
       return
     }
 
-    const storedPin = sessionStorage.getItem('haushalt_pin')
-    const storedReadOnly = sessionStorage.getItem('haushalt_readonly')
+    const storedPin = browserStorage.getItem('haushalt_pin')
+    const storedReadOnly = browserStorage.getItem('haushalt_readonly')
     
     if (storedPin) {
       setPin(storedPin)
@@ -67,7 +69,13 @@ export default function PinProtectedContent({
       return
     }
 
-    const isValid = await checkPin(inputPin)
+    let isValid: boolean
+    try {
+      isValid = await checkPin(inputPin)
+    } catch {
+      setError('Could not connect. Please check your connection and try again.')
+      return
+    }
     if (!isValid) {
       const newAttempts = failedAttempts + 1
       setFailedAttempts(newAttempts)
@@ -83,22 +91,22 @@ export default function PinProtectedContent({
 
     setFailedAttempts(0)
     setLockedUntil(null)
-    sessionStorage.setItem('haushalt_pin', inputPin)
-    sessionStorage.removeItem('haushalt_readonly')
+    browserStorage.setItem('haushalt_pin', inputPin)
+    browserStorage.removeItem('haushalt_readonly')
     setPin(inputPin)
     setReadOnly(false)
     setShowModal(false)
   }
 
   const handleReadOnly = () => {
-    sessionStorage.setItem('haushalt_readonly', 'true')
+    browserStorage.setItem('haushalt_readonly', 'true')
     setReadOnly(true)
     setShowModal(false)
   }
 
   // Show loading state while initializing
   if (!isInitialized) {
-    return null
+    return <p role="status">Loading access settings?</p>
   }
 
   if (!pin && !readOnly) {
@@ -106,7 +114,7 @@ export default function PinProtectedContent({
       <>
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div role="dialog" aria-modal="true" aria-label="Enter PIN" className="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full mx-4 my-4">
               <h2 className="text-2xl font-bold mb-4">Enter PIN</h2>
               <p className="text-gray-600 mb-4">
                 Enter your PIN to manage tasks and kids, or view in read-only mode.
@@ -117,7 +125,9 @@ export default function PinProtectedContent({
                     PIN
                   </label>
                   <input
-                    type="password"
+                    inputMode="numeric"
+                  autoComplete="off"
+                  type="password"
                     id="pin"
                     value={inputPin}
                     onChange={(e) => setInputPin(e.target.value)}
@@ -160,7 +170,7 @@ export default function PinProtectedContent({
             <button
               onClick={() => {
                 setReadOnly(false)
-                sessionStorage.removeItem('haushalt_readonly')
+                browserStorage.removeItem('haushalt_readonly')
                 setShowModal(true)
               }}
               className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-md hover:bg-yellow-300 transition-colors text-sm font-medium"

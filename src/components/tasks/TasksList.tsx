@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { useState } from 'react'
 import { updateTask, toggleTaskActive, deleteTask, updateTaskKids } from '@/actions/tasks'
 
@@ -58,7 +60,7 @@ export default function TasksList({ tasks, kids }: TasksListProps) {
     setLoading(taskId)
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await updateTaskKids({ taskId, kidIds: selectedKidIds, pin })
       setEditingKidsId(null)
     } catch (err) {
@@ -73,7 +75,7 @@ export default function TasksList({ tasks, kids }: TasksListProps) {
     setLoading(id)
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await updateTask({ id, title: editTitle, pin })
       setEditingId(null)
     } catch (err) {
@@ -88,7 +90,7 @@ export default function TasksList({ tasks, kids }: TasksListProps) {
     setError('')
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await toggleTaskActive({ id, pin })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to toggle task')
@@ -106,7 +108,7 @@ export default function TasksList({ tasks, kids }: TasksListProps) {
     setError('')
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await deleteTask({ id, pin })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete task')
@@ -285,7 +287,7 @@ export default function TasksList({ tasks, kids }: TasksListProps) {
         </div>
       )}
       {renderTaskGroup(regularTasks, 'Regular Tasks')}
-      {renderTaskGroup(tenMinTasks, '10-Minute Tasks')}
+      {tenMinTasks.length > 0 && <details className="mt-6"><summary className="cursor-pointer text-gray-500">Archived: 10-Minute Tasks ({tenMinTasks.length})</summary><p className="text-sm text-gray-500 mt-3">These tasks are hidden from active views. Previous records are preserved.</p><ul className="mt-2 text-gray-500">{tenMinTasks.map(task => <li key={task.id}>{task.title}</li>)}</ul></details>}
     </div>
   )
 }

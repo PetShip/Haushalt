@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { useState } from 'react'
 import { Kid } from '@prisma/client'
 import { updateKid, toggleKidActive, deleteKid } from '@/actions/kids'
@@ -25,7 +27,7 @@ export default function KidsList({ kids }: KidsListProps) {
     setLoading(id)
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await updateKid({ id, firstName: editName, pin })
       setEditingId(null)
     } catch (err) {
@@ -40,7 +42,7 @@ export default function KidsList({ kids }: KidsListProps) {
     setError('')
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await toggleKidActive({ id, pin })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to toggle kid')
@@ -58,7 +60,7 @@ export default function KidsList({ kids }: KidsListProps) {
     setError('')
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await deleteKid({ id, pin })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete kid')

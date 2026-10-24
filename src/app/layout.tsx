@@ -36,7 +36,7 @@ export default async function RootLayout({
   return (
     <html lang="de">
       <body>
-        <Navigation />
+        <Navigation pinRequired={pinRequired} />
         <main className="max-w-7xl mx-auto px-4 py-8">
           <PinGuard pinRequired={pinRequired}>{children}</PinGuard>
         </main>

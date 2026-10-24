@@ -1,5 +1,7 @@
 'use client'
 
+import { browserStorage } from '@/lib/browser-storage'
+
 import { useState } from 'react'
 import { createTask } from '@/actions/tasks'
 
@@ -9,7 +11,7 @@ interface AddTaskFormProps {
 
 export default function AddTaskForm({ kids }: AddTaskFormProps) {
   const [title, setTitle] = useState('')
-  const [group, setGroup] = useState<'REGULAR' | 'TEN_MIN'>('REGULAR')
+  const [group, setGroup] = useState<'REGULAR'>('REGULAR')
   const [selectedKidIds, setSelectedKidIds] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -42,7 +44,7 @@ export default function AddTaskForm({ kids }: AddTaskFormProps) {
     setLoading(true)
 
     try {
-      const pin = sessionStorage.getItem('haushalt_pin') || ''
+      const pin = browserStorage.getItem('haushalt_pin') || ''
       await createTask({ 
         title: title.trim(), 
         group, 
@@ -85,12 +87,11 @@ export default function AddTaskForm({ kids }: AddTaskFormProps) {
         <select
           id="group"
           value={group}
-          onChange={(e) => setGroup(e.target.value as 'REGULAR' | 'TEN_MIN')}
+          onChange={(e) => setGroup(e.target.value as 'REGULAR')}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           disabled={loading}
         >
           <option value="REGULAR">Regular Tasks</option>
-          <option value="TEN_MIN">10-Minute Tasks</option>
         </select>
       </div>
 
