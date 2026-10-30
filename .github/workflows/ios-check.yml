@@ -1,0 +1,31 @@
+name: iOS build and calendar tests
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ['ios/**', '.github/workflows/ios-check.yml']
+  pull_request:
+    paths: ['ios/**', '.github/workflows/ios-check.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Check public app boundary
+        run: python3 ios/tools/check_public_boundary.py
+      - name: Test calendar and models
+        working-directory: ios
+        run: swift test
+      - name: Build native iPhone app without signing
+        run: >-
+          xcodebuild -project ios/Household.xcodeproj -scheme Household
+          -configuration Debug -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO build

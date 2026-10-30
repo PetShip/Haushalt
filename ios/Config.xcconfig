@@ -1,0 +1,7 @@
+// Replace these identifiers with identifiers registered in YOUR Apple team.
+// No signing certificates, API keys or account passwords belong in this file.
+PRODUCT_BUNDLE_IDENTIFIER = com.REPLACE.household
+CLOUDKIT_CONTAINER_IDENTIFIER = iCloud.com.REPLACE.household
+DEVELOPMENT_TEAM =
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1
